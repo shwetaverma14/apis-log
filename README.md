@@ -1,5 +1,7 @@
 # apis-log
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hyphae/apis-log/badge)](https://scorecard.dev/viewer/?uri=github.com/hyphae/apis-log)
+
 ## Introduction
 
 apis-log is software for receiving data from apis-main by multicast via a communication line and storing that information in a database in JSON format.
