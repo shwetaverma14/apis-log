@@ -14,28 +14,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-
-      - name: Set up JDK 17 and Maven Cache
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
           java-version: "17"
           distribution: "temurin"
           cache: "maven"
-
+      
       - name: Install Groovy
         run: sudo apt-get update && sudo apt-get install -y groovy
-
-      - name: 1. Clone and Install apis-bom
+      
+      - name: Clone and build apis-bom
         run: |
           git clone https://github.com/hyphae/apis-bom.git ../apis-bom
-          mvn -B -f ../apis-bom/pom.xml clean install -DskipTests=true -Dmaven.test.failure.ignore=true
-
-      - name: 2. Clone and Install apis-common
+          cd ../apis-bom
+          mvn -B clean install
+      
+      - name: Clone and build apis-common
         run: |
           git clone https://github.com/hyphae/apis-common.git ../apis-common
-          mvn -B -f ../apis-common/pom.xml clean install -DskipTests=true -Dmaven.test.failure.ignore=true
-
-      - name: 3. Build and Test apis-main
+          cd ../apis-common
+          # Change version to 3.4.1 if needed (check what version apis-bom uses)
+          BOM_VERSION=$(grep -oP '<version>\K[^<]+' ../apis-bom/pom.xml | head -1)
+          sed -i "s/<version>3.0.0<\\/version>/<version>$BOM_VERSION<\\/version>/" pom.xml
+          mvn -B clean install
+      
+      - name: Build and test apis-log
         run: mvn -B clean verify
+      
+      - name: Test shell scripts
+        run: |
+          echo "Testing start.sh permissions..."
+          cd exe
+          chmod +x start.sh
+          ./start.sh
