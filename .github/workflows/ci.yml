@@ -26,7 +26,22 @@ jobs:
           distribution: "temurin"
           cache: "maven"
       
-      - name: Build and test with Maven
+      - name: Clone and build apis-bom
+        run: |
+          git clone https://github.com/hyphae/apis-bom.git ../apis-bom
+          cd ../apis-bom
+          mvn -B clean install
+      
+      - name: Clone and build apis-common
+        run: |
+          git clone https://github.com/hyphae/apis-common.git ../apis-common
+          cd ../apis-common
+          # Change version to 3.4.1 if needed (check what version apis-bom uses)
+          BOM_VERSION=$(grep -oP '<version>\K[^<]+' ../apis-bom/pom.xml | head -1)
+          sed -i "s/<version>3.0.0<\\/version>/<version>$BOM_VERSION<\\/version>/" pom.xml
+          mvn -B clean install
+      
+      - name: Build and test apis-log
         run: mvn -B clean verify
       
       - name: Test shell scripts
