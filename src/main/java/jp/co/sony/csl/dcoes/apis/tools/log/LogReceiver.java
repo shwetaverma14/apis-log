@@ -3,6 +3,7 @@ package jp.co.sony.csl.dcoes.apis.tools.log;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Handler;
 import io.vertx.core.datagram.DatagramSocket;
 import io.vertx.core.datagram.DatagramSocketOptions;
@@ -40,27 +41,27 @@ public class LogReceiver extends AbstractVerticle {
 	 * Called during startup.
 	 * Calls initialization of MongoDB.
 	 * Calls initialization of network surroundings.
-	 * @param startFuture {@inheritDoc}
+	 * @param startPromise {@inheritDoc}
 	 * @throws Exception {@inheritDoc}
 	 * 起動時に呼び出される.
 	 * MongoDB の初期化を呼び出す.
 	 * ネットワークまわりの初期化を呼び出す.
-	 * @param startFuture {@inheritDoc}
+	 * @param startPromise {@inheritDoc}
 	 * @throws Exception {@inheritDoc}
 	 */
-	@Override public void start(Future<Void> startFuture) throws Exception {
+	@Override public void start(Promise<Void> startPromise) throws Exception {
 		MongoDbWriter.initialize(vertx, resInitializeMongoDbWriter -> {
 			if (resInitializeMongoDbWriter.succeeded()) {
 				startSocketService_(resSocket -> {
 					if (resSocket.succeeded()) {
 						if (log.isTraceEnabled()) log.trace("started : " + deploymentID());
-						startFuture.complete();
+						startPromise.complete();
 					} else {
-						startFuture.fail(resSocket.cause());
+						startPromise.fail(resSocket.cause());
 					}
 				});
 			} else {
-				startFuture.fail(resInitializeMongoDbWriter.cause());
+				startPromise.fail(resInitializeMongoDbWriter.cause());
 			}
 		});
 	}
